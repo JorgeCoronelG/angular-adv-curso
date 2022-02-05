@@ -13,8 +13,18 @@
             <li><a href="">My Profile </a></li>
             <li><a href="">My Balance</a></li>
             <li><a href="">Inbox</a></li>
-            <li><a routerLink="account-settings">Account Setting</a></li>
-            <li><a routerLink="/login">Logout</a></li>
+            <li>
+              <a routerLink="account-settings"
+                   routerLinkActive="active">
+                Account Setting
+              </a>
+            </li>
+            <li>
+              <a routerLink="/login"
+                 routerLinkActive="active">
+                Logout
+              </a>
+            </li>
           </ul>
         </li>
         <li class="nav-devider"></li>
@@ -30,7 +40,13 @@
             </span>
           </a>
           <ul aria-expanded="false" class="collapse" *ngFor="let subItem of item.subMenu">
-            <li><a [routerLink]="subItem.url">{{ subItem.title }}</a></li>
+            <li>
+              <a [routerLink]="subItem.url"
+                 routerLinkActive="active"
+                [routerLinkActiveOptions]="{exact: true}">
+                {{ subItem.title }}
+              </a>
+            </li>
           </ul>
         </li>
       </ul>
