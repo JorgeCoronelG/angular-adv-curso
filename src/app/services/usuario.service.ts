@@ -6,6 +6,7 @@ import { tap, map, catchError } from "rxjs/operators";
 import { environment } from "../../environments/environment";
 import { LoginForm } from "../interfaces/login-form.interface";
 import { RegisterForm } from "../interfaces/register-form.interface";
+import { Usuario } from "../models/usuario.model";
 
 declare const gapi: any;
 
@@ -13,8 +14,17 @@ declare const gapi: any;
   providedIn: 'root'
 })
 export class UsuarioService {
+  public usuario!: Usuario;
   public baseUrl = environment.base_url;
   public auth2: any;
+
+  get token(): string {
+    return localStorage.getItem('token') || '';
+  }
+
+  get uid(): string {
+    return this.usuario.uid || '';
+  }
 
   constructor(private http: HttpClient,
               private router: Router,
@@ -23,17 +33,20 @@ export class UsuarioService {
   }
 
   public validarToken(): Observable<boolean> {
-    const token = localStorage.getItem('token') || '';
     return this.http.get(`${this.baseUrl}/login/renew`, {
       headers: {
-        'x-token': token
+        'x-token': this.token
       }
     })
       .pipe(
-        tap(({token}: any) => {
+        map(({token, usuario}: any) => {
+          const { email, google, nombre, role, uid, img = '' } = usuario;
+          this.usuario = new Usuario(nombre, email, '', img, google, uid, role);
+
           localStorage.setItem('token', token);
+
+          return true;
         }),
-        map(() => true),
         catchError(() => of(false))
       );
   }
@@ -45,6 +58,18 @@ export class UsuarioService {
           localStorage.setItem('token', token);
         })
       );
+  }
+
+  public actualizarPerfil(data: { email: string, nombre: string, role: string}) {
+    data = {
+      ...data,
+      role: this.usuario.role!
+    };
+    return this.http.put(`${this.baseUrl}/usuarios/${this.uid}`, data, {
+      headers: {
+        'x-token': this.token
+      }
+    });
   }
 
   public login(formData: LoginForm) {
