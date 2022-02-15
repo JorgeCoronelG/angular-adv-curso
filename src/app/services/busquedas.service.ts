@@ -2,6 +2,8 @@ import { HttpClient } from "@angular/common/http";
 import { Injectable } from '@angular/core';
 import { map } from "rxjs/operators";
 import { environment } from "../../environments/environment";
+import { Hospital } from "../models/hospital.model";
+import { Medico } from "../models/medico.model";
 import { Usuario } from "../models/usuario.model";
 
 @Injectable({
@@ -32,6 +34,10 @@ export class BusquedasService {
           switch (tipo) {
             case 'usuarios':
               return this.transformarUsuarios(res.resultados);
+            case 'hospitales':
+              return res.resultados as Hospital[];
+            case 'medicos':
+              return res.resultados as Medico[];
             default:
               return [];
           }
