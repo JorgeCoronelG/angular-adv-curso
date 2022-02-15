@@ -35,6 +35,10 @@ export class UsuarioService {
     };
   }
 
+  get role(): 'ADMIN_ROLE' | 'USER_ROLE' {
+    return this.usuario.role!;
+  }
+
   constructor(private http: HttpClient,
               private router: Router,
               private ngZone: NgZone) {
@@ -44,11 +48,11 @@ export class UsuarioService {
   public validarToken(): Observable<boolean> {
     return this.http.get(`${this.baseUrl}/login/renew`, this.headers)
       .pipe(
-        map(({token, usuario}: any) => {
+        map(({token, usuario, menu}: any) => {
           const { email, google, nombre, role, uid, img = '' } = usuario;
           this.usuario = new Usuario(nombre, email, '', img, google, uid, role);
 
-          localStorage.setItem('token', token);
+          this.guardarLocalStorage(token, menu);
 
           return true;
         }),
@@ -59,8 +63,8 @@ export class UsuarioService {
   public crearUsuario(formData: RegisterForm) {
     return this.http.post(`${this.baseUrl}/usuarios`, formData)
       .pipe(
-        tap(({token}: any) => {
-          localStorage.setItem('token', token);
+        tap(({token, menu}: any) => {
+          this.guardarLocalStorage(token, menu);
         })
       );
   }
@@ -76,8 +80,8 @@ export class UsuarioService {
   public login(formData: LoginForm) {
     return this.http.post(`${this.baseUrl}/login`, formData)
       .pipe(
-        tap(({token}: any) => {
-          localStorage.setItem('token', token);
+        tap(({token, menu}: any) => {
+          this.guardarLocalStorage(token, menu);
         })
       );
   }
@@ -85,14 +89,15 @@ export class UsuarioService {
   public loginGoogle(token: string) {
     return this.http.post(`${this.baseUrl}/login/google`, { token })
       .pipe(
-        tap(({token}: any) => {
-          localStorage.setItem('token', token);
+        tap(({token, menu}: any) => {
+          this.guardarLocalStorage(token, menu);
         })
       );
   }
 
   public logout(): void {
     localStorage.removeItem('token');
+    localStorage.removeItem('menu');
 
     this.auth2.signOut().then(() => {
       this.ngZone.run(() => {
@@ -137,5 +142,10 @@ export class UsuarioService {
 
   public guardarUsuario(usuario: Usuario) {
     return this.http.put(`${this.baseUrl}/usuarios/${usuario.uid}`, usuario, this.headers);
+  }
+
+  private guardarLocalStorage(token: string, menu: any) {
+    localStorage.setItem('token', token);
+    localStorage.setItem('menu', JSON.stringify(menu));
   }
 }
